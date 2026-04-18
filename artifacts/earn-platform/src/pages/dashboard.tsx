@@ -1,16 +1,18 @@
 import { useGetDashboard } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet, Users, TrendingUp, Copy, CheckCircle2 } from "lucide-react";
+import { Wallet, Users, TrendingUp, Copy, CheckCircle2, Link2, UserCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const { data: stats, isLoading } = useGetDashboard();
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   if (isLoading || !stats) {
     return (
@@ -40,34 +42,69 @@ export default function Dashboard() {
 
   const referralLink = `${window.location.origin}/register?ref=${user?.referralCode}`;
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(referralLink);
+  const copyCode = () => {
+    navigator.clipboard.writeText(user?.referralCode || "");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const todayJoiners: string[] = (stats as any).todayJoiners || [];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between md:items-end gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Overview</h1>
-          <p className="text-slate-500 mt-1">Welcome back, {user?.username}</p>
+          <p className="text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+            Welcome back, <strong className="text-slate-700">{user?.username}</strong>
+            {stats.uplinerName && (
+              <span className="text-xs text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full bg-slate-50">
+                Invited by <span className="font-medium text-slate-500">{stats.uplinerName}</span>
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg border shadow-sm">
           <span className="text-sm font-medium text-slate-600">Ref Code:</span>
           <code className="bg-slate-100 px-2 py-1 rounded text-sm font-bold text-primary">{user?.referralCode}</code>
-          <Button variant="ghost" size="icon" className="h-8 w-8 ml-1" onClick={copyToClipboard}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 ml-1" onClick={copyCode} title="Copy code">
             {copied ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4 text-slate-500" />}
           </Button>
         </div>
       </div>
 
-      {stats.uplinerName && (
-        <div className="bg-blue-50 text-blue-800 px-4 py-3 rounded-lg text-sm border border-blue-100 flex items-center">
-          <Users className="h-4 w-4 mr-2 opacity-70" />
-          Invited by <strong className="ml-1">{stats.uplinerName}</strong>
-        </div>
-      )}
+      <Card className="shadow-sm border-blue-100 bg-blue-50/40">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Link2 className="h-4 w-4 text-blue-500 shrink-0" />
+              <span className="text-sm font-medium text-blue-800 shrink-0">Your Referral Link:</span>
+              <code className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded truncate font-mono">
+                {referralLink}
+              </code>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-blue-200 text-blue-700 hover:bg-blue-100 shrink-0"
+              onClick={copyLink}
+            >
+              {copiedLink ? (
+                <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 text-green-500" />Copied!</>
+              ) : (
+                <><Copy className="h-3.5 w-3.5 mr-1.5" />Copy Link</>
+              )}
+            </Button>
+          </div>
+          <p className="text-xs text-blue-600 mt-2 ml-6">Share this link — anyone who registers via it becomes part of your team and you earn from 5 levels of referrals.</p>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="shadow-sm border-slate-200">
@@ -118,10 +155,13 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="shadow-sm border-slate-200">
           <CardHeader>
-            <CardTitle className="text-lg">Daily Joining Bonus</CardTitle>
-            <p className="text-sm text-muted-foreground">Invite users today to unlock bonuses.</p>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <UserCheck className="h-5 w-5 text-primary" />
+              Daily Joining Bonus
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Invite friends today to unlock daily bonuses.</p>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5">
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">{stats.dailyJoiningProgress} joined today</span>
@@ -144,6 +184,27 @@ export default function Dashboard() {
                 <div>6 Joins</div>
               </div>
             </div>
+
+            {todayJoiners.length > 0 ? (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Joined Today via Your Link</p>
+                <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                  {todayJoiners.map((name, i) => (
+                    <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                      <div className="h-6 w-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold uppercase shrink-0">
+                        {name[0]}
+                      </div>
+                      <span className="text-sm font-medium text-slate-700">{name}</span>
+                      <Badge className="ml-auto bg-green-100 text-green-700 hover:bg-green-100 border-none text-xs shrink-0">New</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-3 text-xs text-slate-400 border border-dashed rounded-lg">
+                No one joined via your link today yet — share it now!
+              </div>
+            )}
           </CardContent>
         </Card>
 

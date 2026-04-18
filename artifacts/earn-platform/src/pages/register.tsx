@@ -4,12 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRegister } from "@workspace/api-client-react";
 import { useAuth } from "@/lib/auth";
 import { Link, useLocation } from "wouter";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { UserCheck } from "lucide-react";
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
@@ -22,8 +23,9 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const { login } = useAuth();
-  const [location, setLocation] = useLocation();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [autoFilledRef, setAutoFilledRef] = useState(false);
   
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -31,11 +33,11 @@ export default function Register() {
   });
 
   useEffect(() => {
-    // Extract referral code from URL if present
     const searchParams = new URLSearchParams(window.location.search);
     const ref = searchParams.get("ref");
     if (ref) {
       form.setValue("referralCode", ref);
+      setAutoFilledRef(true);
     }
   }, [form]);
   
@@ -103,7 +105,7 @@ export default function Register() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input placeholder="••••••••" type="password" {...field} disabled={registerMutation.isPending} />
+                      <Input placeholder="••••••••" type="password" autoComplete="new-password" {...field} disabled={registerMutation.isPending} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,11 +116,25 @@ export default function Register() {
                 name="referralCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Referral Code (Optional)</FormLabel>
+                    <FormLabel>Referral Code {autoFilledRef ? "" : "(Optional)"}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter code if you have one" {...field} disabled={registerMutation.isPending} />
+                      {autoFilledRef ? (
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-md px-3 py-2">
+                          <UserCheck className="h-4 w-4 text-green-600 shrink-0" />
+                          <span className="font-mono text-sm font-bold text-green-700 flex-1">{field.value}</span>
+                          <span className="text-xs text-green-600 bg-green-100 px-2 py-0.5 rounded-full shrink-0">Auto-filled</span>
+                          <input type="hidden" {...field} />
+                        </div>
+                      ) : (
+                        <Input placeholder="Enter code if you have one" {...field} disabled={registerMutation.isPending} />
+                      )}
                     </FormControl>
-                    <FormDescription>If you were invited, enter their code here.</FormDescription>
+                    {autoFilledRef && (
+                      <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                        <UserCheck className="h-3 w-3" />
+                        You were invited via a referral link — code applied automatically.
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

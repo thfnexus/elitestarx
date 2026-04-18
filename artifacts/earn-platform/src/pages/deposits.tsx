@@ -1,5 +1,4 @@
-import { useGetDeposits, useCreateDeposit, DepositMethod, CreateDepositBodyMethod } from "@workspace/api-client-react";
-import { useState } from "react";
+import { useGetDeposits, useCreateDeposit, CreateDepositBodyMethod } from "@workspace/api-client-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,10 +12,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getGetDepositsQueryKey } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Lock } from "lucide-react";
+
+const FIXED_PKR = 800;
+const PKR_TO_USD_RATE = 280;
+const FIXED_USD = parseFloat((FIXED_PKR / PKR_TO_USD_RATE).toFixed(4));
 
 const depositSchema = z.object({
   method: z.enum(["jazzcash", "easypaisa", "bank_transfer"] as const),
-  amount: z.coerce.number().min(1, "Minimum deposit is $1"),
   transactionRef: z.string().min(3, "Transaction reference is required"),
   senderNumber: z.string().optional(),
 });
@@ -38,7 +41,6 @@ export default function Deposits() {
     resolver: zodResolver(depositSchema),
     defaultValues: {
       method: "jazzcash",
-      amount: 10,
       transactionRef: "",
       senderNumber: "",
     },
@@ -49,8 +51,8 @@ export default function Deposits() {
   const createDepositMutation = useCreateDeposit({
     mutation: {
       onSuccess: () => {
-        toast({ title: "Deposit request submitted", description: "Your deposit is pending approval." });
-        form.reset({ method: "jazzcash", amount: 10, transactionRef: "", senderNumber: "" });
+        toast({ title: "Deposit request submitted", description: "Your deposit is pending admin approval." });
+        form.reset({ method: "jazzcash", transactionRef: "", senderNumber: "" });
         queryClient.invalidateQueries({ queryKey: getGetDepositsQueryKey() });
       },
       onError: (error) => {
@@ -64,7 +66,14 @@ export default function Deposits() {
   });
 
   const onSubmit = (data: DepositForm) => {
-    createDepositMutation.mutate({ data });
+    createDepositMutation.mutate({
+      data: {
+        method: data.method as CreateDepositBodyMethod,
+        amount: FIXED_USD,
+        transactionRef: data.transactionRef,
+        senderNumber: data.senderNumber,
+      }
+    });
   };
 
   if (isLoading) {
@@ -95,13 +104,35 @@ export default function Deposits() {
           <Card className="shadow-sm border-slate-200">
             <CardHeader className="bg-slate-50 border-b border-slate-100">
               <CardTitle>New Deposit</CardTitle>
-              <CardDescription>Send payment to the details below, then submit the form.</CardDescription>
+              <CardDescription>Send the exact amount below, then submit the form with your transaction ID.</CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 text-center">
+                <p className="text-xs font-semibold text-primary/70 uppercase tracking-wider mb-1">Fixed Deposit Amount</p>
+                <div className="flex items-center justify-center gap-3">
+                  <div>
+                    <span className="text-4xl font-extrabold text-primary">800</span>
+                    <span className="text-xl font-bold text-primary ml-1">PKR</span>
+                  </div>
+                  <div className="text-slate-400 text-sm">≈</div>
+                  <div className="text-slate-600">
+                    <span className="text-xl font-bold">${FIXED_USD}</span>
+                    <span className="text-xs text-slate-400 block">USD</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center gap-1 mt-2 text-xs text-slate-500">
+                  <Lock className="h-3 w-3" />
+                  <span>Fixed amount — Rate: Rs.{PKR_TO_USD_RATE}/$</span>
+                </div>
+              </div>
+
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-                <p className="text-sm font-medium text-blue-800 mb-1">Payment Details for {PAYMENT_DETAILS[selectedMethod].name}</p>
-                <p className="text-lg font-bold text-blue-900 font-mono tracking-tight">{PAYMENT_DETAILS[selectedMethod].details}</p>
-                <p className="text-xs text-blue-700 mt-2">Conversion rate: $1 = Rs.280</p>
+                <p className="text-sm font-medium text-blue-800 mb-1">
+                  Send to — {PAYMENT_DETAILS[selectedMethod].name}
+                </p>
+                <p className="text-base font-bold text-blue-900 font-mono tracking-tight">
+                  {PAYMENT_DETAILS[selectedMethod].details}
+                </p>
               </div>
 
               <Form {...form}>
@@ -124,19 +155,6 @@ export default function Deposits() {
                             <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                           </SelectContent>
                         </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="amount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Amount (USD)</FormLabel>
-                        <FormControl>
-                          <Input type="number" step="0.01" {...field} />
-                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -168,7 +186,7 @@ export default function Deposits() {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={createDepositMutation.isPending}>
-                    {createDepositMutation.isPending ? "Submitting..." : "Submit Deposit Request"}
+                    {createDepositMutation.isPending ? "Submitting..." : "Submit Deposit Request (800 PKR)"}
                   </Button>
                 </form>
               </Form>
@@ -193,7 +211,8 @@ export default function Deposits() {
                     <div key={deposit.id} className="p-4 sm:p-5 hover:bg-slate-50 transition-colors flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="font-bold text-slate-900">${deposit.amount.toFixed(2)}</span>
+                          <span className="font-bold text-slate-900">800 PKR</span>
+                          <span className="text-xs text-slate-400">(${deposit.amount.toFixed(2)})</span>
                           <span className="text-xs text-slate-500 px-2 py-0.5 bg-slate-100 rounded-md capitalize">
                             {deposit.method.replace('_', ' ')}
                           </span>

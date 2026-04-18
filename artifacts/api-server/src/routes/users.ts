@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { db, usersTable, transactionsTable, joiningBonusesTable, globalPoolTable, rewardsTable } from "@workspace/db";
-import { eq, desc, and } from "drizzle-orm";
+import { db, usersTable, transactionsTable, joiningBonusesTable, globalPoolTable, rewardsTable, referralsTable } from "@workspace/db";
+import { eq, desc, and, gte } from "drizzle-orm";
 import { getAuthUser } from "../lib/auth";
 import { REWARD_MILESTONES } from "../lib/rewardService";
 
@@ -66,6 +66,31 @@ router.get("/users/dashboard", async (req, res): Promise<void> => {
 
   const nextRewardMilestone = REWARD_MILESTONES.find(m => !claimedMilestones.has(m.referrals)) || null;
 
+  const todayJoinsRaw = await db.select({ referredId: referralsTable.referredId, createdAt: referralsTable.createdAt })
+    .from(referralsTable)
+    .where(and(eq(referralsTable.referrerId, user.id), eq(referralsTable.level, 1), gte(referralsTable.createdAt, today0)));
+
+  const todayJoinerIds = todayJoinsRaw.map(r => r.referredId);
+  let todayJoiners: string[] = [];
+  if (todayJoinerIds.length > 0) {
+    const joinedUsers = await db.select({ id: usersTable.id, username: usersTable.username })
+      .from(usersTable)
+      .where(eq(usersTable.id, todayJoinerIds[0]));
+    const joinedMap = new Map(joinedUsers.map(u => [u.id, u.username]));
+    for (const id of todayJoinerIds) {
+      const username = joinedMap.get(id);
+      if (username) todayJoiners.push(username);
+    }
+    if (todayJoinerIds.length > 1) {
+      const rest = await Promise.all(todayJoinerIds.slice(1).map(id =>
+        db.select({ id: usersTable.id, username: usersTable.username }).from(usersTable).where(eq(usersTable.id, id))
+      ));
+      for (const rows of rest) {
+        if (rows[0]) todayJoiners.push(rows[0].username);
+      }
+    }
+  }
+
   res.json({
     balance: Number(user.balance),
     totalEarnings: Number(user.totalEarnings),
@@ -77,6 +102,7 @@ router.get("/users/dashboard", async (req, res): Promise<void> => {
     pendingWithdrawals,
     pendingDeposits,
     dailyJoiningProgress: todayBonus?.joinsCount || 0,
+    todayJoiners,
     globalPoolShare: yourShare,
     nextRewardMilestone: nextRewardMilestone
       ? { referrals: nextRewardMilestone.referrals, amount: nextRewardMilestone.amount, claimed: false }
