@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "EarnHub - Earning Platform"
+version = "1.0.0"
+id = "artifacts/earn-platform"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18442
+
+[services.development]
+run = "pnpm --filter @workspace/earn-platform run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/earn-platform", "run", "build" ]
+publicDir = "artifacts/earn-platform/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18442"
+BASE_PATH = "/"

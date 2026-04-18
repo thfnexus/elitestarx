@@ -1,22 +1,40 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: EarnHub earning platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: users
+    description: User management
+  - name: wallet
+    description: Wallet and balance
+  - name: ads
+    description: Ad watching earnings
+  - name: referrals
+    description: Referral system
+  - name: deposits
+    description: Deposit system
+  - name: withdrawals
+    description: Withdrawal system
+  - name: rewards
+    description: Reward milestones
+  - name: globalPool
+    description: Global pool
+  - name: admin
+    description: Admin panel
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +42,464 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: register
+      tags: [auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users/dashboard:
+    get:
+      operationId: getDashboard
+      tags: [users]
+      summary: Get dashboard stats
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /wallet/transactions:
+    get:
+      operationId: getTransactions
+      tags: [wallet]
+      summary: Get transaction history
+      responses:
+        "200":
+          description: Transaction list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+
+  /ads/watch:
+    post:
+      operationId: watchAd
+      tags: [ads]
+      summary: Record ad watch and earn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchAdBody"
+      responses:
+        "200":
+          description: Earning recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchAdResponse"
+        "400":
+          description: Daily limit reached or invalid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ads/status:
+    get:
+      operationId: getAdStatus
+      tags: [ads]
+      summary: Get today's ad watching status
+      responses:
+        "200":
+          description: Ad status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdStatus"
+
+  /referrals/team:
+    get:
+      operationId: getTeam
+      tags: [referrals]
+      summary: Get referral team by levels
+      responses:
+        "200":
+          description: Team data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamData"
+
+  /referrals/earnings:
+    get:
+      operationId: getReferralEarnings
+      tags: [referrals]
+      summary: Get referral earnings breakdown
+      responses:
+        "200":
+          description: Referral earnings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReferralEarning"
+
+  /deposits:
+    get:
+      operationId: getDeposits
+      tags: [deposits]
+      summary: Get deposit history
+      responses:
+        "200":
+          description: Deposit list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Deposit"
+    post:
+      operationId: createDeposit
+      tags: [deposits]
+      summary: Submit a deposit request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDepositBody"
+      responses:
+        "201":
+          description: Deposit request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deposit"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /withdrawals:
+    get:
+      operationId: getWithdrawals
+      tags: [withdrawals]
+      summary: Get withdrawal history
+      responses:
+        "200":
+          description: Withdrawal list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Withdrawal"
+    post:
+      operationId: createWithdrawal
+      tags: [withdrawals]
+      summary: Submit a withdrawal request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWithdrawalBody"
+      responses:
+        "201":
+          description: Withdrawal request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Withdrawal"
+        "400":
+          description: Bad request or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /withdrawals/live-feed:
+    get:
+      operationId: getLiveWithdrawals
+      tags: [withdrawals]
+      summary: Get recent approved withdrawals for live feed
+      responses:
+        "200":
+          description: Recent withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LiveWithdrawal"
+
+  /rewards:
+    get:
+      operationId: getRewards
+      tags: [rewards]
+      summary: Get reward milestones and status
+      responses:
+        "200":
+          description: Reward milestones
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RewardsData"
+
+  /global-pool/status:
+    get:
+      operationId: getGlobalPoolStatus
+      tags: [globalPool]
+      summary: Get global pool status
+      responses:
+        "200":
+          description: Global pool status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GlobalPoolStatus"
+
+  /admin/users:
+    get:
+      operationId: adminGetUsers
+      tags: [admin]
+      summary: Get all users (admin)
+      responses:
+        "200":
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminUser"
+
+  /admin/users/{id}/block:
+    patch:
+      operationId: adminBlockUser
+      tags: [admin]
+      summary: Block or unblock a user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BlockUserBody"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/users/{id}/balance:
+    patch:
+      operationId: adminAdjustBalance
+      tags: [admin]
+      summary: Adjust user balance (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdjustBalanceBody"
+      responses:
+        "200":
+          description: Balance adjusted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/deposits:
+    get:
+      operationId: adminGetDeposits
+      tags: [admin]
+      summary: Get all deposits (admin)
+      responses:
+        "200":
+          description: All deposits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminDeposit"
+
+  /admin/deposits/{id}/approve:
+    patch:
+      operationId: adminApproveDeposit
+      tags: [admin]
+      summary: Approve or reject a deposit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveRequestBody"
+      responses:
+        "200":
+          description: Deposit updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/withdrawals:
+    get:
+      operationId: adminGetWithdrawals
+      tags: [admin]
+      summary: Get all withdrawals (admin)
+      responses:
+        "200":
+          description: All withdrawals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdminWithdrawal"
+
+  /admin/withdrawals/{id}/approve:
+    patch:
+      operationId: adminApproveWithdrawal
+      tags: [admin]
+      summary: Approve or reject a withdrawal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ApproveRequestBody"
+      responses:
+        "200":
+          description: Withdrawal updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /admin/analytics:
+    get:
+      operationId: adminGetAnalytics
+      tags: [admin]
+      summary: Get platform analytics
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsData"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +510,613 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+
+    RegisterBody:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        referralCode:
+          type: ["string", "null"]
+      required:
+        - username
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        token:
+          type: string
+      required:
+        - user
+        - token
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        referralCode:
+          type: string
+        uplinerName:
+          type: ["string", "null"]
+        balance:
+          type: number
+        totalEarnings:
+          type: number
+        totalWithdrawn:
+          type: number
+        referralCount:
+          type: integer
+        isAdmin:
+          type: boolean
+        isBlocked:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - username
+        - email
+        - referralCode
+        - balance
+        - totalEarnings
+        - totalWithdrawn
+        - referralCount
+        - isAdmin
+        - isBlocked
+        - createdAt
+
+    DashboardStats:
+      type: object
+      properties:
+        balance:
+          type: number
+        totalEarnings:
+          type: number
+        totalWithdrawn:
+          type: number
+        referralCount:
+          type: integer
+        uplinerName:
+          type: ["string", "null"]
+        todayAdEarnings:
+          type: number
+        todayReferralEarnings:
+          type: number
+        pendingWithdrawals:
+          type: number
+        pendingDeposits:
+          type: number
+        dailyJoiningProgress:
+          type: integer
+        globalPoolShare:
+          type: number
+        nextRewardMilestone:
+          $ref: "#/components/schemas/RewardMilestone"
+        recentTransactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      required:
+        - balance
+        - totalEarnings
+        - totalWithdrawn
+        - referralCount
+        - todayAdEarnings
+        - todayReferralEarnings
+        - pendingWithdrawals
+        - pendingDeposits
+        - dailyJoiningProgress
+        - globalPoolShare
+        - recentTransactions
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          enum: [ad_earning, referral_commission, joining_bonus, reward, global_pool, deposit, withdrawal, admin_adjustment]
+        amount:
+          type: number
+        description:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        createdAt:
+          type: string
+      required:
+        - id
+        - type
+        - amount
+        - description
+        - status
+        - createdAt
+
+    WatchAdBody:
+      type: object
+      properties:
+        adId:
+          type: string
+        watchDuration:
+          type: integer
+      required:
+        - adId
+        - watchDuration
+
+    WatchAdResponse:
+      type: object
+      properties:
+        earned:
+          type: number
+        totalToday:
+          type: number
+        adsWatchedToday:
+          type: integer
+        dailyLimitReached:
+          type: boolean
+        newBalance:
+          type: number
+      required:
+        - earned
+        - totalToday
+        - adsWatchedToday
+        - dailyLimitReached
+        - newBalance
+
+    AdStatus:
+      type: object
+      properties:
+        adsWatchedToday:
+          type: integer
+        dailyLimit:
+          type: integer
+        earningsToday:
+          type: number
+        dailyLimitReached:
+          type: boolean
+        nextResetAt:
+          type: string
+      required:
+        - adsWatchedToday
+        - dailyLimit
+        - earningsToday
+        - dailyLimitReached
+        - nextResetAt
+
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        joinedAt:
+          type: string
+        level:
+          type: integer
+        isActive:
+          type: boolean
+      required:
+        - id
+        - username
+        - joinedAt
+        - level
+        - isActive
+
+    TeamData:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        level1:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        level2:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        level3:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        level4:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+        level5:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamMember"
+      required:
+        - totalMembers
+        - level1
+        - level2
+        - level3
+        - level4
+        - level5
+
+    ReferralEarning:
+      type: object
+      properties:
+        id:
+          type: integer
+        fromUsername:
+          type: string
+        level:
+          type: integer
+        amount:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - fromUsername
+        - level
+        - amount
+        - createdAt
+
+    Deposit:
+      type: object
+      properties:
+        id:
+          type: integer
+        method:
+          type: string
+          enum: [jazzcash, easypaisa, bank_transfer]
+        amount:
+          type: number
+        transactionRef:
+          type: string
+        senderNumber:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - method
+        - amount
+        - transactionRef
+        - status
+        - createdAt
+
+    CreateDepositBody:
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [jazzcash, easypaisa, bank_transfer]
+        amount:
+          type: number
+        transactionRef:
+          type: string
+        senderNumber:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+      required:
+        - method
+        - amount
+        - transactionRef
+
+    Withdrawal:
+      type: object
+      properties:
+        id:
+          type: integer
+        method:
+          type: string
+          enum: [jazzcash, easypaisa, bank_transfer]
+        amount:
+          type: number
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - method
+        - amount
+        - accountNumber
+        - accountName
+        - status
+        - createdAt
+
+    CreateWithdrawalBody:
+      type: object
+      properties:
+        method:
+          type: string
+          enum: [jazzcash, easypaisa, bank_transfer]
+        amount:
+          type: number
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+      required:
+        - method
+        - amount
+        - accountNumber
+        - accountName
+
+    LiveWithdrawal:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        amount:
+          type: number
+        method:
+          type: string
+        approvedAt:
+          type: string
+      required:
+        - id
+        - username
+        - amount
+        - method
+        - approvedAt
+
+    RewardMilestone:
+      type: object
+      properties:
+        referrals:
+          type: integer
+        amount:
+          type: number
+        claimed:
+          type: boolean
+      required:
+        - referrals
+        - amount
+        - claimed
+
+    RewardsData:
+      type: object
+      properties:
+        totalReferrals:
+          type: integer
+        milestones:
+          type: array
+          items:
+            $ref: "#/components/schemas/RewardMilestone"
+        totalRewardsClaimed:
+          type: number
+      required:
+        - totalReferrals
+        - milestones
+        - totalRewardsClaimed
+
+    GlobalPoolStatus:
+      type: object
+      properties:
+        currentPool:
+          type: number
+        totalMembers:
+          type: integer
+        nextDistributionAt:
+          type: string
+        yourShare:
+          type: number
+        lastDistributed:
+          type: ["number", "null"]
+      required:
+        - currentPool
+        - totalMembers
+        - nextDistributionAt
+        - yourShare
+
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        balance:
+          type: number
+        totalEarnings:
+          type: number
+        referralCount:
+          type: integer
+        isBlocked:
+          type: boolean
+        isAdmin:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - username
+        - email
+        - balance
+        - totalEarnings
+        - referralCount
+        - isBlocked
+        - isAdmin
+        - createdAt
+
+    BlockUserBody:
+      type: object
+      properties:
+        blocked:
+          type: boolean
+      required:
+        - blocked
+
+    AdjustBalanceBody:
+      type: object
+      properties:
+        amount:
+          type: number
+        reason:
+          type: string
+      required:
+        - amount
+        - reason
+
+    AdminDeposit:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        method:
+          type: string
+        amount:
+          type: number
+        transactionRef:
+          type: string
+        senderNumber:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - username
+        - method
+        - amount
+        - transactionRef
+        - status
+        - createdAt
+
+    AdminWithdrawal:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        method:
+          type: string
+        amount:
+          type: number
+        accountNumber:
+          type: string
+        accountName:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+      required:
+        - id
+        - username
+        - method
+        - amount
+        - accountNumber
+        - accountName
+        - status
+        - createdAt
+
+    ApproveRequestBody:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+        notes:
+          type: ["string", "null"]
+      required:
+        - action
+
+    AnalyticsData:
+      type: object
+      properties:
+        totalUsers:
+          type: integer
+        totalEarningsDistributed:
+          type: number
+        totalDeposits:
+          type: number
+        totalWithdrawals:
+          type: number
+        pendingDeposits:
+          type: integer
+        pendingWithdrawals:
+          type: integer
+        globalPoolBalance:
+          type: number
+        newUsersToday:
+          type: integer
+        activeUsersToday:
+          type: integer
+      required:
+        - totalUsers
+        - totalEarningsDistributed
+        - totalDeposits
+        - totalWithdrawals
+        - pendingDeposits
+        - pendingWithdrawals
+        - globalPoolBalance
+        - newUsersToday
+        - activeUsersToday

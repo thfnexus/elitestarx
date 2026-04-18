@@ -1,0 +1,228 @@
+Build a FULL production-ready web application using Next.js (App Router) with TypeScript and PostgreSQL (Neon).
+
+DATABASE:
+Use this PostgreSQL connection string:
+postgresql://neondb_owner:npg_1XcSn5JfhryH@ep-bitter-pond-anisuo8y-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+
+Use Prisma ORM for database management.
+
+PROJECT TYPE:
+A complete earning platform with multi-level referral system, ads earning, bonuses, rewards, wallet, deposit, and withdraw system.
+
+IMPORTANT:
+
+* Do NOT generate dummy frontend only.
+* Build FULL backend + frontend + database schema.
+* Every feature must be functional and connected to database.
+* Clean, modular, scalable architecture required.
+
+TECH STACK:
+
+* Next.js (App Router)
+* TypeScript
+* Prisma ORM
+* Neon PostgreSQL
+* Tailwind CSS (light theme only, clean professional UI)
+* No dark theme
+* No AI-looking messy UI
+
+---
+
+FEATURES TO IMPLEMENT:
+
+1. AUTHENTICATION SYSTEM:
+
+* User registration with referral code
+* Login/logout
+* Password hashing (bcrypt)
+* Each user has unique referral code
+* Store upliner (who invited them)
+
+---
+
+2. USER DASHBOARD:
+   Show:
+
+* Current Balance
+* Total Earnings
+* Total Withdraw
+* Referral Count
+* Upliner Name
+
+---
+
+3. WALLET SYSTEM:
+
+* Main Balance
+* Transaction history
+* Earnings logs (ads, bonus, referral, rewards)
+* Withdraw history
+* Deposit history
+
+---
+
+4. ADS WATCH EARNING:
+
+* Each ad gives $0.018
+* Daily limit system
+* Timer-based validation (user must stay for X seconds)
+* Prevent abuse (basic logic)
+
+---
+
+5. MULTI-LEVEL REFERRAL SYSTEM:
+   5 Levels:
+   Level 1 = $0.54
+   Level 2 = $0.29
+   Level 3 = $0.14
+   Level 4 = $0.07
+   Level 5 = $0.04
+
+* Automatically distribute commission on new joins
+* Maintain referral tree
+* Store level-wise earnings
+
+---
+
+6. DAILY JOINING BONUS:
+
+* 2 joins = $1
+
+* 4 joins = $1
+
+* 6 joins = $2
+
+* Track daily progress
+
+* Reset daily
+
+---
+
+7. REWARD SYSTEM:
+   Milestones:
+   15 users = $3
+   30 users = $3.57
+   50 users = $6
+   100 users = $15
+   200 users = $30
+   300 users = $35
+   400 users = $40
+   550 users = $50
+   800 users = $80
+   1000 users = $107.14
+
+* Auto reward when milestone reached
+
+---
+
+8. GLOBAL POOL:
+
+* Every new user adds $0.18 to pool
+* Distribute pool earnings weekly (Sunday cron job)
+
+---
+
+9. DEPOSIT SYSTEM:
+   Add dummy methods:
+
+* JazzCash
+* EasyPaisa
+* Bank Transfer
+
+Include:
+
+* Instructions page
+* Manual approval system (admin side)
+* Deposit request form
+
+---
+
+10. WITHDRAW SYSTEM:
+
+* Minimum withdraw $1
+* First withdraw $0.43
+* Request system
+* Admin approval
+* Deduct balance on request
+
+---
+
+11. TEAM VIEW:
+
+* Show referral tree
+* Level-wise team list
+
+---
+
+12. LIVE WITHDRAW FEED:
+
+* Show recent withdrawals dynamically
+
+---
+
+13. ADMIN PANEL:
+
+* View all users
+* Approve deposits
+* Approve withdraws
+* Block/unblock users
+* Adjust balances
+* View analytics
+
+---
+
+14. SECURITY:
+
+* Prevent duplicate earnings
+* Basic anti-cheat checks
+* Rate limiting
+
+---
+
+15. UI DESIGN:
+
+* Light theme only
+* Minimal, clean, professional
+* Smooth layout
+* Mobile responsive
+* No clutter
+* No AI-style gradients
+
+---
+
+16. DATABASE DESIGN:
+    Create full schema using Prisma:
+    Tables:
+
+* users
+* referrals
+* transactions
+* earnings
+* withdrawals
+* deposits
+* rewards
+* global_pool
+
+---
+
+17. BACKGROUND JOBS:
+
+* Daily bonus reset
+* Weekly pool distribution
+
+---
+
+OUTPUT REQUIREMENTS:
+
+* Full project folder structure
+* Prisma schema
+* API routes
+* Frontend pages
+* Clean reusable components
+* Proper comments in code
+
+---
+
+GOAL:
+This must be a COMPLETE WORKING SYSTEM, not a UI demo.
+Every feature must be functional with database integration.
