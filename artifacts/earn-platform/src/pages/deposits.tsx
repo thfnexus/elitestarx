@@ -21,7 +21,8 @@ const FIXED_USD = parseFloat((FIXED_PKR / PKR_TO_USD_RATE).toFixed(4));
 const depositSchema = z.object({
   method: z.enum(["jazzcash", "easypaisa", "bank_transfer"] as const),
   transactionRef: z.string().min(3, "Transaction reference is required"),
-  senderNumber: z.string().optional(),
+  senderName: z.string().min(2, "Sender name is required"),
+  senderNumber: z.string().min(5, "Sender number/account is required"),
 });
 
 type DepositForm = z.infer<typeof depositSchema>;
@@ -42,6 +43,7 @@ export default function Deposits() {
     defaultValues: {
       method: "jazzcash",
       transactionRef: "",
+      senderName: "",
       senderNumber: "",
     },
   });
@@ -52,7 +54,7 @@ export default function Deposits() {
     mutation: {
       onSuccess: () => {
         toast({ title: "Deposit request submitted", description: "Your deposit is pending admin approval." });
-        form.reset({ method: "jazzcash", transactionRef: "", senderNumber: "" });
+        form.reset({ method: "jazzcash", transactionRef: "", senderName: "", senderNumber: "" });
         queryClient.invalidateQueries({ queryKey: getGetDepositsQueryKey() });
       },
       onError: (error) => {
@@ -71,7 +73,7 @@ export default function Deposits() {
         method: data.method as CreateDepositBodyMethod,
         amount: FIXED_USD,
         transactionRef: data.transactionRef,
-        senderNumber: data.senderNumber,
+        senderNumber: `${data.senderName} | ${data.senderNumber}`,
       }
     });
   };
@@ -174,12 +176,25 @@ export default function Deposits() {
                   />
                   <FormField
                     control={form.control}
+                    name="senderName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sender Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Full name on account" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="senderNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Sender Account/Number (Optional)</FormLabel>
+                        <FormLabel>Sender Account / Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="Account name or number" {...field} />
+                          <Input placeholder="e.g. 0300-1234567" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
