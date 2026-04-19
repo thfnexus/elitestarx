@@ -29,3 +29,5 @@ app.listen(port, async (err) => {
     logger.error({ err: startupErr }, "Error during startup tasks");
   }
 });
+
+export default app;
