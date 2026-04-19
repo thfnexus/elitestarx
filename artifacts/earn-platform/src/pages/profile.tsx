@@ -13,7 +13,8 @@ import {
   Trophy,
   Camera,
   Save,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +27,8 @@ import { PremiumCard } from "@/components/PremiumCard";
 import { useRef } from "react";
 
 export default function Profile() {
+  const { user } = useAuth();
+  const { data: stats, isLoading } = useGetDashboard();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
