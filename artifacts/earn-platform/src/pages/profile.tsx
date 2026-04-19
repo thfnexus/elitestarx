@@ -32,7 +32,7 @@ export default function Profile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (profileImage: string) => {
+    mutationFn: async (profileImage: string | null) => {
       return await customFetch("/api/users/profile", {
         method: "PATCH",
         body: JSON.stringify({ profileImage })
@@ -107,12 +107,27 @@ export default function Profile() {
                     <Camera className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <div className="absolute bottom-4 right-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800">
+                <div className="absolute bottom-4 right-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800 pointer-events-none">
                   <Camera className="h-4 w-4" />
                 </div>
               </div>
+
+              {user.profileImage && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="mt-2 mb-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 text-[10px] font-bold tracking-wider uppercase h-6 px-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    updateProfileMutation.mutate(null);
+                  }}
+                  disabled={updateProfileMutation.isPending}
+                >
+                  Remove Photo
+                </Button>
+              )}
               
-              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{user.username}</h2>
+              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-2">{user.username}</h2>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">{user.email}</p>
 
               <div className="w-full space-y-3 bg-muted/20 rounded-xl p-5 border border-border/50">
