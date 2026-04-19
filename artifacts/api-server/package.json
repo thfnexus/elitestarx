@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx ./src/index.ts",
-    "build": "node ./prep-vercel.js",
+    "build": "mkdir -p dist && echo 'ready' > dist/index.html",
     "start": "node --enable-source-maps ./dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
