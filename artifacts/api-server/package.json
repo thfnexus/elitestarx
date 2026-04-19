@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node ./build.mjs && pnpm run start",
-    "build": "node -e \"const fs=require('fs'); if(!fs.existsSync('dist')) fs.mkdirSync('dist')\"",
+    "build": "node ./build.mjs",
     "build:custom": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
