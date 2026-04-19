@@ -18,6 +18,8 @@ export const usersTable = pgTable("users", {
   hasActivePlan: boolean("has_active_plan").notNull().default(false),
   whatsappNumber: text("whatsapp_number"),
   profileImage: text("profile_image"),
+  level: integer("level").notNull().default(0),
+  xp: integer("xp").notNull().default(0),
   globalPoolEligible: boolean("global_pool_eligible").notNull().default(true),
   dynamicAdRatePkr: integer("dynamic_ad_rate_pkr").notNull().default(5),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

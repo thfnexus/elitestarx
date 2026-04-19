@@ -22,11 +22,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PremiumCard } from "@/components/PremiumCard";
+import { useRef } from "react";
 
 export default function Profile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [imageUrl, setImageUrl] = useState((user as any).profileImage || "");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageUrl, setImageUrl] = useState((user as any)?.profileImage || "");
 
   const updateProfileMutation = useMutation({
     mutationFn: async (profileImage: string) => {
@@ -44,91 +47,68 @@ export default function Profile() {
     }
   });
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ variant: "destructive", title: "File too large", description: "Max size is 2MB" });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        updateProfileMutation.mutate(base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex justify-between items-center bg-card p-6 rounded-2xl border border-border/50 shadow-sm">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">My Profile</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm font-medium">Manage your account details and view your platform status.</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        className="hidden" 
+        accept="image/*"
+      />
+
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex-1 w-full">
+           <PremiumCard 
+             user={user as any} 
+             onAvatarClick={() => fileInputRef.current?.click()} 
+           />
         </div>
-        <div className="hidden md:flex flex-col items-end">
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Status</span>
-          <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
-            <div className={`h-2 w-2 rounded-full ${stats?.hasActivePlan ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></div>
-            <span className="text-xs font-bold text-primary">{stats?.hasActivePlan ? 'Verified Elite' : 'Standard User'}</span>
+        
+        <div className="hidden lg:flex flex-col items-center justify-center p-6 bg-card rounded-[2rem] border border-border/50 shadow-sm min-w-[200px]">
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Account Status</span>
+          <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20 shadow-inner">
+            <div className={`h-2.5 w-2.5 rounded-full ${stats?.hasActivePlan ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`}></div>
+            <span className="text-sm font-black text-primary uppercase tracking-tighter">{stats?.hasActivePlan ? 'Elite Verified' : 'Standard'}</span>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Profile Stats / Avatar Sidebar */}
+      <div className="grid gap-8 md:grid-cols-3">
+        {/* Profile Details Sidebar */}
         <div className="space-y-6">
-          <Card className="shadow-lg border-border border-t-4 border-t-primary overflow-hidden bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-8 flex flex-col items-center text-center">
-              <div className="relative group">
-                <div className="h-28 w-28 rounded-full bg-primary/10 text-primary flex items-center justify-center text-5xl font-bold mb-4 ring-4 ring-white dark:ring-slate-800 shadow-xl overflow-hidden transition-transform group-hover:scale-105 duration-300">
-                  {(user as any).profileImage ? (
-                    <img src={(user as any).profileImage} alt={user.username} className="h-full w-full object-cover" />
-                  ) : (
-                    user.username.charAt(0).toUpperCase()
-                  )}
-                </div>
-                <div className="absolute bottom-4 right-0 h-8 w-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border-2 border-white dark:border-slate-800">
-                  <Camera className="h-4 w-4" />
-                </div>
-              </div>
-              
-              <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">{user.username}</h2>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">{user.email}</p>
-
-              <div className="w-full space-y-3 bg-muted/20 rounded-xl p-5 border border-border/50">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-black uppercase text-[10px] tracking-widest">Total Earnings</span>
-                  <span className="font-black text-primary text-lg">${user.totalEarnings.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center border-t border-border/50 pt-3">
-                  <span className="text-muted-foreground font-black uppercase text-[10px] tracking-widest text-left">Team Members</span>
-                  <span className="font-black text-foreground text-lg">{user.referralCount}</span>
-                </div>
-              </div>
-            </CardContent>
           </Card>
 
-          {/* Quick Edit Section */}
-          <Card className="shadow-md border-border bg-card">
+          {/* Upload Tips Section */}
+          <Card className="shadow-md border-border bg-card/40 backdrop-blur-sm">
             <CardHeader className="pb-3 px-6 pt-6">
               <CardTitle className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                <Camera className="h-4 w-4 text-primary" /> Profile Image
+                <Sparkles className="h-4 w-4 text-amber-500" /> Earning Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-6 pb-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="imageUrl" className="text-xs font-bold text-slate-500">Image URL</Label>
-                <Input 
-                  id="imageUrl"
-                  placeholder="https://example.com/photo.jpg" 
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  className="bg-muted/50 border-input h-10 font-medium"
-                />
-              </div>
-              <Button 
-                className="w-full h-10 font-bold gap-2 shadow-sm"
-                onClick={() => updateProfileMutation.mutate(imageUrl)}
-                disabled={updateProfileMutation.isPending}
-              >
-                {updateProfileMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Save Picture
-              </Button>
-              <p className="text-[10px] text-center text-muted-foreground font-medium italic">
-                Pro tip: Use a direct link to your photo.
-              </p>
+            <CardContent className="px-6 pb-6 text-[11px] font-medium text-muted-foreground leading-relaxed">
+               Click your **Premium Avatar** at the top to upload a new profile picture directly from your device. 
+               <div className="mt-2 text-primary font-bold">Image size limit: 2MB</div>
             </CardContent>
           </Card>
         </div>
