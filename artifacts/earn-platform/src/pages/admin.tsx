@@ -37,7 +37,7 @@ import {
 } from "@workspace/api-client-react";
 import { Users, ArrowDownToLine, ArrowUpFromLine, Activity, Ban, Edit, CheckCircle, XCircle, Settings, Globe, Save, Trophy, Shield, Trash2, AlertTriangle } from "lucide-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { customFetch } from "@/lib/auth";
+import { customFetch } from "@workspace/api-client-react";
 
 interface WeeklyPayout {
   id: number;
