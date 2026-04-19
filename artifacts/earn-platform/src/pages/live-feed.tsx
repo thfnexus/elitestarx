@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 export default function LiveFeed() {
   const { data: withdrawals, isLoading } = useGetLiveWithdrawals({
-    query: { refetchInterval: 5000 } // Poll every 5s for the "live" effect
+    query: { refetchInterval: 5000 } as any // Poll every 5s for the "live" effect
   });
 
   return (

@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { customFetch } from "@workspace/api-client-react";
+import { customFetch } from "@/lib/auth"; // fallback for customFetch
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,8 +97,8 @@ export default function Profile() {
             <CardContent className="pt-8 flex flex-col items-center text-center">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                 <div className="h-28 w-28 rounded-full bg-primary/10 text-primary flex items-center justify-center text-5xl font-bold mb-4 ring-4 ring-white dark:ring-slate-800 shadow-xl overflow-hidden transition-transform group-hover:scale-105 duration-300">
-                  {user.profileImage ? (
-                    <img src={user.profileImage} alt={user.username} className="h-full w-full object-cover" />
+                  {(user as any).profileImage ? (
+                    <img src={(user as any).profileImage} alt={user.username} className="h-full w-full object-cover" />
                   ) : (
                     user.username.charAt(0).toUpperCase()
                   )}
@@ -112,7 +112,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              {user.profileImage && (
+              {(user as any).profileImage && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
