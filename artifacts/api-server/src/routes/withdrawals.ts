@@ -6,7 +6,7 @@ import { getAuthUser } from "../lib/auth";
 const router: IRouter = Router();
 
 const MIN_WITHDRAW = 1.0;
-const FIRST_WITHDRAW_MIN = 0.43;
+const FIRST_WITHDRAW_MIN = 0.5;
 
 router.get("/withdrawals", async (req, res): Promise<void> => {
   const user = await getAuthUser(req as any);
@@ -96,7 +96,7 @@ router.post("/withdrawals", async (req, res): Promise<void> => {
   await db.insert(transactionsTable).values({
     userId: user.id,
     type: "withdrawal",
-    amount: String(requestedAmount.toFixed(4)),
+    amount: String((-requestedAmount).toFixed(4)),
     description: `Withdrawal request via ${method}`,
     status: "pending",
     referenceId: withdrawal.id,

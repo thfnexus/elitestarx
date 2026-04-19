@@ -10,6 +10,7 @@ import withdrawalsRouter from "./withdrawals";
 import rewardsRouter from "./rewards";
 import globalPoolRouter from "./globalPool";
 import adminRouter from "./admin";
+import plansRouter from "./plans";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(withdrawalsRouter);
 router.use(rewardsRouter);
 router.use(globalPoolRouter);
 router.use(adminRouter);
+router.use(plansRouter);
 
 export default router;

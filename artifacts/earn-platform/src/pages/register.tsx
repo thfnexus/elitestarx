@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EliteStarXLogo } from "@/components/logo";
 import { useEffect, useState } from "react";
 import { UserCheck } from "lucide-react";
 
@@ -16,6 +17,7 @@ const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters").regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers, and underscores"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  whatsappNumber: z.string().min(10, "Valid WhatsApp number is required (e.g. 03XXXXXXXXX)"),
   referralCode: z.string().optional(),
 });
 
@@ -29,7 +31,7 @@ export default function Register() {
   
   const form = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { username: "", email: "", password: "", referralCode: "" },
+    defaultValues: { username: "", email: "", password: "", whatsappNumber: "", referralCode: "" },
   });
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function Register() {
     mutation: {
       onSuccess: (data) => {
         login(data.token);
-        toast({ title: "Account created!", description: "Welcome to EarnHub." });
+        toast({ title: "Account created!", description: "Welcome to Elite Starx." });
         setLocation("/dashboard");
       },
       onError: (error) => {
@@ -63,11 +65,14 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-sm border-slate-200 my-8">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="mt-8 mb-4 animate-in fade-in zoom-in duration-700">
+        <EliteStarXLogo size="lg" />
+      </div>
+      <Card className="w-full max-w-md shadow-lg border-border my-8">
         <CardHeader className="space-y-2 text-center pb-6">
-          <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">Create Account</CardTitle>
-          <CardDescription>Join EarnHub and start growing your income</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight">Create Account</CardTitle>
+          <CardDescription>Join Elite Starx and start growing your income</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -106,6 +111,19 @@ export default function Register() {
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input placeholder="••••••••" type="password" autoComplete="new-password" {...field} disabled={registerMutation.isPending} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="whatsappNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>WhatsApp Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="03XXXXXXXXX" {...field} disabled={registerMutation.isPending} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

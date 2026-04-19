@@ -12,6 +12,11 @@ router.get("/referrals/team", async (req, res): Promise<void> => {
     return;
   }
 
+  if (!user.hasActivePlan) {
+    res.status(403).json({ error: "Active plan required to view team" });
+    return;
+  }
+
   const levels: Record<number, Array<{ id: number; username: string; joinedAt: string; level: number; isActive: boolean }>> = {
     1: [], 2: [], 3: [], 4: [], 5: [],
   };

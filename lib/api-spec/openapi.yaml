@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Api
   version: 0.1.0
-  description: EarnHub earning platform API
+  description: Elite Starx earning platform API
 servers:
   - url: /api
     description: Base API path
@@ -197,6 +197,57 @@ paths:
               schema:
                 $ref: "#/components/schemas/AdStatus"
 
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get platform settings (admin)
+      responses:
+        "200":
+          description: List of settings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Setting"
+    patch:
+      operationId: adminUpdateSetting
+      tags: [admin]
+      summary: Update a platform setting (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateSettingBody"
+      responses:
+        "200":
+          description: Setting updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /plans/buy:
+    post:
+      operationId: buyPlan
+      tags: [users]
+      summary: Purchase the active plan
+      responses:
+        "200":
+          description: Plan purchased successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Insufficient balance or plan already active
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /referrals/team:
     get:
       operationId: getTeam
@@ -328,6 +379,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RewardsData"
+  /rewards/claim:
+    post:
+      operationId: claimReward
+      tags: [rewards]
+      summary: Claim a milestone reward
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                referrals:
+                  type: integer
+              required:
+                - referrals
+      responses:
+        "200":
+          description: Reward claimed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request or already claimed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /global-pool/status:
     get:
@@ -539,10 +619,13 @@ components:
           type: string
         referralCode:
           type: ["string", "null"]
+        whatsappNumber:
+          type: string
       required:
         - username
         - email
         - password
+        - whatsappNumber
 
     LoginBody:
       type: object
@@ -591,6 +674,10 @@ components:
           type: boolean
         isBlocked:
           type: boolean
+        hasActivePlan:
+          type: boolean
+        whatsappNumber:
+          type: ["string", "null"]
         createdAt:
           type: string
       required:
@@ -604,6 +691,7 @@ components:
         - referralCount
         - isAdmin
         - isBlocked
+        - hasActivePlan
         - createdAt
 
     DashboardStats:
@@ -627,10 +715,31 @@ components:
           type: number
         pendingDeposits:
           type: number
+        totalWithdrawnAmount:
+          type: number
+        pendingWithdrawalsAmount:
+          type: number
         dailyJoiningProgress:
           type: integer
+        thisWeekReferrals:
+          type: integer
+        hasActivePlan:
+          type: boolean
         globalPoolShare:
           type: number
+        currentTier:
+          type: object
+          properties:
+            label:
+              type: string
+            pkr:
+              type: number
+            rate:
+              type: number
+            minJoins:
+              type: integer
+            color:
+              type: string
         nextRewardMilestone:
           $ref: "#/components/schemas/RewardMilestone"
         recentTransactions:
@@ -646,7 +755,10 @@ components:
         - todayReferralEarnings
         - pendingWithdrawals
         - pendingDeposits
+        - totalWithdrawnAmount
+        - pendingWithdrawalsAmount
         - dailyJoiningProgress
+        - hasActivePlan
         - globalPoolShare
         - recentTransactions
 
@@ -719,12 +831,46 @@ components:
           type: boolean
         nextResetAt:
           type: string
+        adLink:
+          type: string
+        isPlanActive:
+          type: boolean
+        currentTier:
+          type: object
+          properties:
+            label:
+              type: string
+            pkr:
+              type: number
+            rate:
+              type: number
+            minJoins:
+              type: integer
+            color:
+              type: string
+        allTiers:
+          type: array
+          items:
+            type: object
+            properties:
+              label:
+                type: string
+              pkr:
+                type: number
+              rate:
+                type: number
+              minJoins:
+                type: integer
+              color:
+                type: string
       required:
         - adsWatchedToday
         - dailyLimit
         - earningsToday
         - dailyLimitReached
         - nextResetAt
+        - adLink
+        - isPlanActive
 
     TeamMember:
       type: object
@@ -985,6 +1131,12 @@ components:
           type: boolean
         createdAt:
           type: string
+        whatsappNumber:
+          type: ["string", "null"]
+        thisWeekReferrals:
+          type: integer
+        lastWeekReferrals:
+          type: integer
       required:
         - id
         - username
@@ -995,6 +1147,7 @@ components:
         - isBlocked
         - isAdmin
         - createdAt
+        - whatsappNumber
 
     BlockUserBody:
       type: object
@@ -1120,3 +1273,28 @@ components:
         - globalPoolBalance
         - newUsersToday
         - activeUsersToday
+
+    Setting:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - key
+        - value
+        - updatedAt
+
+    UpdateSettingBody:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+      required:
+        - key
+        - value

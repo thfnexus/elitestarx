@@ -7,7 +7,7 @@ import { processReferralCommissions, processDailyJoiningBonus } from "../lib/ref
 const router: IRouter = Router();
 
 router.post("/auth/register", async (req, res): Promise<void> => {
-  const { username, email, password, referralCode } = req.body;
+  const { username, email, password, referralCode, whatsappNumber } = req.body;
 
   if (!username || !email || !password) {
     res.status(400).json({ error: "Username, email and password are required" });
@@ -43,24 +43,16 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     passwordHash: hashPassword(password),
     referralCode: uniqueCode,
     uplinerId,
+    whatsappNumber,
     balance: "0",
     totalEarnings: "0",
     totalWithdrawn: "0",
     referralCount: 0,
   }).returning();
 
-  if (uplinerId) {
-    const [upliner] = await db.select().from(usersTable).where(eq(usersTable.id, uplinerId));
-    if (upliner) {
-      await db.update(usersTable)
-        .set({ referralCount: upliner.referralCount + 1 })
-        .where(eq(usersTable.id, uplinerId));
-
-      await processReferralCommissions(user.id, uplinerId);
-      await processDailyJoiningBonus(uplinerId);
-    }
-  }
-
+  // Upliner processing removed from registration. 
+  // Referral counts and commissions will now be handled upon account activation (deposit approval).
+  
   const [pool] = await db.select().from(globalPoolTable);
   if (pool) {
     await db.update(globalPoolTable).set({
@@ -93,6 +85,8 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       referralCount: user.referralCount,
       isAdmin: user.isAdmin,
       isBlocked: user.isBlocked,
+      hasActivePlan: user.hasActivePlan,
+      whatsappNumber: user.whatsappNumber,
       createdAt: user.createdAt.toISOString(),
     },
     token,
@@ -139,6 +133,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       referralCount: user.referralCount,
       isAdmin: user.isAdmin,
       isBlocked: user.isBlocked,
+      hasActivePlan: user.hasActivePlan,
+      whatsappNumber: user.whatsappNumber,
       createdAt: user.createdAt.toISOString(),
     },
     token,
@@ -174,6 +170,8 @@ router.get("/auth/me", async (req, res): Promise<void> => {
     referralCount: user.referralCount,
     isAdmin: user.isAdmin,
     isBlocked: user.isBlocked,
+    hasActivePlan: user.hasActivePlan,
+    whatsappNumber: user.whatsappNumber,
     createdAt: user.createdAt.toISOString(),
   });
 });

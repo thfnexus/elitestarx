@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EliteStarXLogo } from "@/components/logo";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -49,10 +50,13 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-sm border-slate-200">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="mb-6 animate-in fade-in zoom-in duration-700">
+        <EliteStarXLogo size="lg" />
+      </div>
+      <Card className="w-full max-w-md shadow-lg border-border">
         <CardHeader className="space-y-2 text-center pb-6">
-          <CardTitle className="text-2xl font-bold tracking-tight text-slate-900">Sign In</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Sign In</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         <CardContent>

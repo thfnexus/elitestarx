@@ -7,3 +7,5 @@ export * from "./withdrawals";
 export * from "./rewards";
 export * from "./globalPool";
 export * from "./joiningBonuses";
+export * from "./settings";
+export * from "./weeklyPayouts";

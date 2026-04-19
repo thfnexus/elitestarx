@@ -6,7 +6,9 @@ import {
   useAdminApproveDeposit, 
   useAdminGetWithdrawals, 
   useAdminApproveWithdrawal, 
-  useAdminGetAnalytics 
+  useAdminGetAnalytics,
+  useAdminGetSettings,
+  useAdminUpdateSetting
 } from "@workspace/api-client-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,30 +32,47 @@ import {
   getAdminGetUsersQueryKey, 
   getAdminGetDepositsQueryKey, 
   getAdminGetWithdrawalsQueryKey,
-  getAdminGetAnalyticsQueryKey
+  getAdminGetAnalyticsQueryKey,
+  getAdminGetSettingsQueryKey
 } from "@workspace/api-client-react";
-import { Users, ArrowDownToLine, ArrowUpFromLine, Activity, Ban, Edit, CheckCircle, XCircle } from "lucide-react";
+import { Users, ArrowDownToLine, ArrowUpFromLine, Activity, Ban, Edit, CheckCircle, XCircle, Settings, Globe, Save, Trophy, Shield, Trash2, AlertTriangle } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { customFetch } from "@workspace/api-client-react";
+
+interface WeeklyPayout {
+  id: number;
+  username: string;
+  referralCount: number;
+  amountPaid: number;
+  weekStartDate: string;
+  weekEndDate: string;
+  createdAt: string;
+}
 
 export default function Admin() {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Admin Dashboard</h1>
-        <p className="text-slate-500 mt-1">Platform management and analytics.</p>
+        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-50">Admin Dashboard</h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium text-sm">Platform management and analytics.</p>
       </div>
 
       <Tabs defaultValue="analytics" className="w-full">
-        <TabsList className="bg-slate-100 p-1 mb-6 border border-slate-200">
-          <TabsTrigger value="analytics" className="data-[state=active]:bg-white data-[state=active]:shadow-sm"><Activity className="w-4 h-4 mr-2"/> Analytics</TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-white data-[state=active]:shadow-sm"><Users className="w-4 h-4 mr-2"/> Users</TabsTrigger>
-          <TabsTrigger value="deposits" className="data-[state=active]:bg-white data-[state=active]:shadow-sm"><ArrowDownToLine className="w-4 h-4 mr-2"/> Deposits</TabsTrigger>
-          <TabsTrigger value="withdrawals" className="data-[state=active]:bg-white data-[state=active]:shadow-sm"><ArrowUpFromLine className="w-4 h-4 mr-2"/> Withdrawals</TabsTrigger>
+        <TabsList className="bg-slate-100 dark:bg-slate-900 p-1 mb-6 border border-slate-200 dark:border-slate-800">
+          <TabsTrigger value="analytics" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><Activity className="w-4 h-4 mr-2"/> Analytics</TabsTrigger>
+          <TabsTrigger value="users" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><Users className="w-4 h-4 mr-2"/> Users</TabsTrigger>
+          <TabsTrigger value="deposits" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><ArrowDownToLine className="w-4 h-4 mr-2"/> Deposits</TabsTrigger>
+          <TabsTrigger value="withdrawals" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><ArrowUpFromLine className="w-4 h-4 mr-2"/> Withdrawals</TabsTrigger>
+          <TabsTrigger value="weekly" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><Trophy className="w-4 h-4 mr-2"/> Weekly Bonuses</TabsTrigger>
+          <TabsTrigger value="settings" className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:shadow-sm"><Settings className="w-4 h-4 mr-2"/> Settings</TabsTrigger>
         </TabsList>
 
         <TabsContent value="analytics"><AnalyticsTab /></TabsContent>
         <TabsContent value="users"><UsersTab /></TabsContent>
         <TabsContent value="deposits"><DepositsTab /></TabsContent>
         <TabsContent value="withdrawals"><WithdrawalsTab /></TabsContent>
+        <TabsContent value="weekly"><WeeklyPerformanceTab /></TabsContent>
+        <TabsContent value="settings"><SettingsTab /></TabsContent>
       </Tabs>
     </div>
   );
@@ -124,37 +143,79 @@ function UsersTab() {
     }
   });
 
+  const roleMutation = useMutation({
+    mutationFn: async ({ id, isAdmin }: { id: number, isAdmin: boolean }) => {
+      const resp = await customFetch(`/admin/users/${id}/role`, {
+        method: "PATCH",
+        body: JSON.stringify({ isAdmin })
+      });
+      if (!resp.ok) throw new Error("Failed to update role");
+      return resp.json();
+    },
+    onSuccess: () => {
+      toast({ title: "User role updated successfully" });
+      queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const resp = await customFetch(`/admin/users/${id}`, {
+        method: "DELETE"
+      });
+      if (!resp.ok) {
+        const err = await resp.json();
+        throw new Error(err.error || "Failed to delete user");
+      }
+      return resp.json();
+    },
+    onSuccess: () => {
+      toast({ title: "User deleted permanently" });
+      queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getAdminGetAnalyticsQueryKey() });
+    },
+    onError: (err: any) => {
+      toast({ variant: "destructive", title: "Deletion failed", description: err.message });
+    }
+  });
+
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
 
   if (isLoading) return <div className="p-8 text-center">Loading users...</div>;
 
   return (
-    <Card>
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
       <CardHeader>
-        <CardTitle>User Management</CardTitle>
+        <CardTitle className="font-black text-slate-900 dark:text-slate-100">User Management</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
+            <thead className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-3 font-medium text-slate-500">User</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Stats</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Balance</th>
-                <th className="px-6 py-3 font-medium text-slate-500 text-right">Actions</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">User</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Stats</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Weekly Joins</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Balance</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {users?.map(u => (
-                <tr key={u.id} className="bg-white">
+                <tr key={u.id} className="bg-white dark:bg-slate-900/20 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors text-slate-900 dark:text-slate-100">
                   <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{u.username} {u.isAdmin && <Badge variant="secondary" className="ml-1 text-[10px]">Admin</Badge>}</div>
-                    <div className="text-slate-500">{u.email}</div>
+                    <div className="font-medium text-slate-900 dark:text-slate-100">{u.username} {u.isAdmin && <Badge variant="secondary" className="ml-1 text-[10px]">Admin</Badge>}</div>
+                    <div className="text-slate-500 dark:text-slate-400 text-xs">{u.email}</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-xs mt-0.5">WA: {u.whatsappNumber || "Not recorded"}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-xs">Refs: {u.referralCount}</div>
-                    <div className="text-xs">Earned: ${u.totalEarnings.toFixed(2)}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Earned: ${u.totalEarnings.toFixed(2)}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs text-amber-600 dark:text-amber-500 font-bold">This Week: {u.thisWeekReferrals || 0}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-500">Last Week: {u.lastWeekReferrals || 0}</div>
                   </td>
                   <td className="px-6 py-4 font-bold">
                     ${u.balance.toFixed(2)}
@@ -187,9 +248,88 @@ function UsersTab() {
                       size="sm" 
                       className="h-8 px-2"
                       onClick={() => blockMutation.mutate({ id: u.id, data: { blocked: !u.isBlocked } })}
+                      title={u.isBlocked ? "Unblock User" : "Block User"}
                     >
                       {u.isBlocked ? "Unblock" : <Ban className="w-4 h-4" />}
                     </Button>
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className={`h-8 px-2 ${u.isAdmin ? 'text-blue-600 border-blue-200' : 'text-slate-400'}`}
+                          title={u.isAdmin ? "Remove Admin Role" : "Make Admin"}
+                        >
+                          <Shield className="w-4 h-4"/>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{u.isAdmin ? "Remove Admin Permissions?" : "Promote to Administrator?"}</DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 space-y-3">
+                          <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
+                            {u.isAdmin 
+                              ? `Are you sure you want to remove admin access for ${u.username}? They will lose all management privileges.`
+                              : `Warning: You are about to grant administrative access to ${u.username}. They will have full control over balances, users, and platform settings.`}
+                          </p>
+                          {!u.isAdmin && (
+                            <div className="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-200 dark:border-amber-800 flex items-start gap-3">
+                              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                              <p className="text-xs text-amber-800 dark:text-amber-300">This action grants powerful permissions. Double check that you are promoting the correct user.</p>
+                            </div>
+                          )}
+                        </div>
+                        <DialogFooter>
+                          <Button variant={u.isAdmin ? "destructive" : "default"} onClick={() => roleMutation.mutate({ id: u.id, isAdmin: !u.isAdmin })}>
+                            Confirm Changes
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                          title="Delete Account Permanently"
+                        >
+                          <Trash2 className="w-4 h-4"/>
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="border-red-200 dark:border-red-900">
+                        <DialogHeader>
+                          <DialogTitle className="text-red-600 flex items-center gap-2">
+                             <Trash2 className="w-5 h-5" /> Permanent Deletion
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="py-4 space-y-4">
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                            Are you absolutely sure you want to delete <span className="underline decoration-red-500">{u.username}'s</span> account?
+                          </p>
+                          <div className="space-y-2 text-xs text-slate-500 dark:text-slate-400 font-medium list-disc list-inside">
+                            <p className="text-red-500 font-black uppercase tracking-widest text-[10px]">What happens if you delete this user:</p>
+                            <p>• Entire transaction history will be wiped.</p>
+                            <p>• All referral links and commissions will be destroyed.</p>
+                            <p>• Ad watch records and earned bonuses will be gone.</p>
+                            <p>• This action is <strong>IRREVERSIBLE</strong>.</p>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button 
+                            variant="destructive" 
+                            className="w-full sm:w-auto font-black"
+                            onClick={() => deleteMutation.mutate(u.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            {deleteMutation.isPending ? "Deleting..." : "YES, DELETE PERMANENTLY"}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </td>
                 </tr>
               ))}
@@ -219,28 +359,28 @@ function DepositsTab() {
   if (isLoading) return <div className="p-8 text-center">Loading deposits...</div>;
 
   return (
-    <Card>
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
       <CardHeader>
-        <CardTitle>Deposit Requests</CardTitle>
+        <CardTitle className="font-black text-slate-900 dark:text-slate-100">Deposit Requests</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
+            <thead className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-3 font-medium text-slate-500">Details</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Payment Info</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Status</th>
-                <th className="px-6 py-3 font-medium text-slate-500 text-right">Actions</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Details</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Payment Info</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Status</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {deposits?.map(d => (
-                <tr key={d.id} className="bg-white">
+                <tr key={d.id} className="bg-white dark:bg-slate-900/20 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="font-bold text-slate-900">${d.amount.toFixed(2)}</div>
-                    <div className="text-slate-500 text-xs">User: {d.username}</div>
-                    <div className="text-slate-400 text-xs">{format(new Date(d.createdAt), "MMM d, yyyy HH:mm")}</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100">${d.amount.toFixed(2)}</div>
+                    <div className="text-slate-500 dark:text-slate-400 text-xs">User: {d.username}</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-xs">{format(new Date(d.createdAt), "MMM d, yyyy HH:mm")}</div>
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant="outline" className="mb-1 capitalize">{d.method.replace('_', ' ')}</Badge>
@@ -292,33 +432,33 @@ function WithdrawalsTab() {
   if (isLoading) return <div className="p-8 text-center">Loading withdrawals...</div>;
 
   return (
-    <Card>
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
       <CardHeader>
-        <CardTitle>Withdrawal Requests</CardTitle>
+        <CardTitle className="font-black text-slate-900 dark:text-slate-100">Withdrawal Requests</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b">
+            <thead className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th className="px-6 py-3 font-medium text-slate-500">Details</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Destination Account</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Status</th>
-                <th className="px-6 py-3 font-medium text-slate-500 text-right">Actions</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Details</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Destination Account</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400">Status</th>
+                <th className="px-6 py-3 font-medium text-slate-500 dark:text-slate-400 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {withdrawals?.map(w => (
-                <tr key={w.id} className="bg-white">
+                <tr key={w.id} className="bg-white dark:bg-slate-900/20 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="font-bold text-slate-900">${w.amount.toFixed(2)}</div>
-                    <div className="text-slate-500 text-xs">User: {w.username}</div>
-                    <div className="text-slate-400 text-xs">{format(new Date(w.createdAt), "MMM d, yyyy HH:mm")}</div>
+                    <div className="font-bold text-slate-900 dark:text-slate-100">${w.amount.toFixed(2)}</div>
+                    <div className="text-slate-500 dark:text-slate-400 text-xs">User: {w.username}</div>
+                    <div className="text-slate-400 dark:text-slate-500 text-xs">{format(new Date(w.createdAt), "MMM d, yyyy HH:mm")}</div>
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant="outline" className="mb-1 capitalize">{w.method.replace('_', ' ')}</Badge>
-                    <div className="text-sm font-medium">{w.accountName}</div>
-                    <div className="text-xs text-slate-500 font-mono">{w.accountNumber}</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">{w.accountName}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">{w.accountNumber}</div>
                   </td>
                   <td className="px-6 py-4">
                     <Badge variant={w.status === 'approved' ? 'default' : w.status === 'rejected' ? 'destructive' : 'outline'} className={w.status === 'approved' ? 'bg-green-500 hover:bg-green-600' : ''}>
@@ -336,6 +476,149 @@ function WithdrawalsTab() {
                         </Button>
                       </div>
                     )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SettingsTab() {
+  const { data: settings, isLoading } = useAdminGetSettings();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const [adLink, setAdLink] = useState("");
+
+  const updateMutation = useAdminUpdateSetting({
+    mutation: {
+      onSuccess: () => {
+        toast({ title: "Setting updated successfully" });
+        queryClient.invalidateQueries({ queryKey: getAdminGetSettingsQueryKey() });
+      },
+      onError: (err) => {
+        toast({
+          variant: "destructive",
+          title: "Update failed",
+          description: "Could not update setting.",
+        });
+      }
+    }
+  });
+
+  // Set initial value when settings are loaded
+  useState(() => {
+    if (settings) {
+      const adLinkSetting = settings.find(s => s.key === "ad_link");
+      if (adLinkSetting) setAdLink(adLinkSetting.value);
+    }
+  });
+
+  // Better way to sync initial value
+  const currentAdLink = settings?.find(s => s.key === "ad_link")?.value || "";
+  
+  const handleSave = () => {
+    updateMutation.mutate({ data: { key: "ad_link", value: adLink } });
+  };
+
+  if (isLoading) return <div className="p-8 text-center">Loading settings...</div>;
+
+  return (
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+      <CardHeader>
+        <CardTitle className="font-black text-slate-900 dark:text-slate-50">Platform Settings</CardTitle>
+        <CardDescription className="dark:text-slate-400">Configure global platform parameters and links.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4 max-w-2xl">
+          <div className="space-y-2">
+            <Label htmlFor="ad-link" className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+              <Globe className="w-4 h-4 text-slate-500" />
+              Active Ad Link
+            </Label>
+            <div className="flex gap-2">
+              <Input 
+                id="ad-link"
+                value={adLink || currentAdLink} 
+                onChange={e => setAdLink(e.target.value)} 
+                placeholder="https://example.com/ad-video"
+                className="font-mono text-sm bg-white dark:bg-slate-950/50 dark:border-slate-800 text-slate-900 dark:text-slate-100"
+              />
+              <Button 
+                onClick={handleSave} 
+                disabled={updateMutation.isPending || (!adLink && !currentAdLink)}
+                className="shrink-0"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-500">
+              This link will be opened in a new window when users click "Start Ad Watch".
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function WeeklyPerformanceTab() {
+  const { data: payouts, isLoading } = useQuery<WeeklyPayout[]>({
+    queryKey: ["/admin/weekly-payouts"],
+    queryFn: async () => {
+      const resp = await customFetch("/admin/weekly-payouts");
+      return resp.json();
+    }
+  });
+
+  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading weekly performance data...</div>;
+
+  return (
+    <Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/40">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-slate-950 dark:text-slate-50 font-black">
+          <Trophy className="h-5 w-5 text-amber-500" />
+          Weekly Payout History
+        </CardTitle>
+        <CardDescription className="dark:text-slate-400">Record of automated Sunday referral bonuses paid to users.</CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50/50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th className="px-6 py-3 font-black text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-widest">User</th>
+                <th className="px-6 py-3 font-black text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-widest text-center">Referrals</th>
+                <th className="px-6 py-3 font-black text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-widest">Week Period</th>
+                <th className="px-6 py-3 font-black text-slate-600 dark:text-slate-400 text-[10px] uppercase tracking-widest text-right">Paid Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {(!payouts || payouts.length === 0) && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400 font-medium">No weekly payouts have been processed yet. Payouts happen automatically every Sunday.</td>
+                </tr>
+              )}
+               {payouts?.map(p => (
+                <tr key={p.id} className="bg-white dark:bg-slate-900/20 hover:bg-slate-50/30 dark:hover:bg-slate-800/30 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="font-black text-slate-900 dark:text-slate-100">{p.username}</div>
+                    <div className="text-xs text-slate-400 uppercase tracking-tighter">Processed: {format(new Date(p.createdAt), "MMM d, yyyy")}</div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <Badge variant="outline" className="font-black text-amber-600 border-amber-500/30">{p.referralCount} Refs</Badge>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      {format(new Date(p.weekStartDate), "MMM d")} - {format(new Date(p.weekEndDate), "MMM d, yyyy")}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right font-black text-emerald-600 dark:text-emerald-400">
+                    +${Number(p.amountPaid).toFixed(2)}
                   </td>
                 </tr>
               ))}

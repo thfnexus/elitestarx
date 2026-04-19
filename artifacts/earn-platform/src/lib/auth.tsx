@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useLocation } from "wouter";
 import { useGetMe, setAuthTokenGetter, User } from "@workspace/api-client-react";
 
-setAuthTokenGetter(() => localStorage.getItem("earnhub_token"));
+setAuthTokenGetter(() => localStorage.getItem("elitestarx_token"));
 
 interface AuthContextType {
   user: User | null;
@@ -14,7 +14,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(localStorage.getItem("earnhub_token"));
+  const [token, setToken] = useState<string | null>(localStorage.getItem("elitestarx_token"));
   const [, setLocation] = useLocation();
 
   const { data: user, isLoading, refetch, error } = useGetMe({
@@ -31,13 +31,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [error]);
 
   const login = (newToken: string) => {
-    localStorage.setItem("earnhub_token", newToken);
+    localStorage.setItem("elitestarx_token", newToken);
     setToken(newToken);
     refetch();
   };
 
   const logout = () => {
-    localStorage.removeItem("earnhub_token");
+    localStorage.removeItem("elitestarx_token");
     setToken(null);
     setLocation("/login");
   };

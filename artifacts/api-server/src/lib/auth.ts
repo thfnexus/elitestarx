@@ -3,7 +3,7 @@ import { db, usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + process.env.SESSION_SECRET || "earnhub_secret").digest("hex");
+  return crypto.createHash("sha256").update(password + (process.env.SESSION_SECRET || "earnhub_secret")).digest("hex");
 }
 
 export function generateReferralCode(): string {
@@ -34,5 +34,10 @@ export async function getAuthUser(req: { headers: { authorization?: string } }) 
   const userId = getUserIdFromToken(token);
   if (!userId) return null;
   const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  
+  if (user && user.isAdmin) {
+    user.hasActivePlan = true;
+  }
+  
   return user || null;
 }

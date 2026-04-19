@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { EliteStarXLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ShieldCheck, TrendingUp, Users, Zap, PlayCircle } from "lucide-react";
 import { useEffect } from "react";
@@ -20,7 +21,7 @@ export default function Landing() {
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-primary/20">
       <header className="border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="font-bold text-2xl tracking-tight text-primary">EarnHub</div>
+          <EliteStarXLogo size="lg" />
           <div className="flex gap-4">
             <Link href="/login">
               <Button variant="ghost" className="font-medium text-slate-600 hover:text-slate-900">Sign In</Button>
@@ -81,9 +82,9 @@ export default function Landing() {
                 <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-6">
                   <PlayCircle className="h-6 w-6" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">Guaranteed Ad Yields</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">Dynamic Ad Yields</h3>
                 <p className="text-slate-600 leading-relaxed">
-                  Earn exactly $0.018 for every ad watched. No hidden mechanics, just a 30-second timer and direct deposits to your balance.
+                  Earn from $0.018 up to $0.054 for every ad watched. Bring more referrals to your team to increase your daily earning level and multiply your yield.
                 </p>
               </div>
 
@@ -113,8 +114,8 @@ export default function Landing() {
       
       <footer className="py-12 border-t border-slate-100 bg-white">
         <div className="container mx-auto px-4 text-center text-slate-500">
-          <div className="font-bold text-xl tracking-tight text-slate-900 mb-4">EarnHub</div>
-          <p>© {new Date().getFullYear()} EarnHub Platform. All rights reserved.</p>
+          <div className="flex justify-center mb-4"><EliteStarXLogo size="md" /></div>
+          <p>© {new Date().getFullYear()} Elite StarX Platform. All rights reserved.</p>
         </div>
       </footer>
     </div>
