@@ -4,10 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node ./build.mjs && pnpm run start",
-    "build": "node ./build.mjs",
-    "build:custom": "node ./build.mjs",
-    "start": "node --enable-source-maps ./dist/index.mjs",
+    "dev": "tsx ./src/index.ts",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "start": "node --enable-source-maps ./dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
