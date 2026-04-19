@@ -8,10 +8,10 @@ interface PremiumCardProps {
 }
 
 export function PremiumCard({ user, onAvatarClick }: PremiumCardProps) {
-  // Derive level and progress for display (demo logic)
   const currentLevel = (user as any).level || 0;
-  const currentXp = (user as any).xp || 0;
-  const xpToNextLevel = 100; // Formula could be more complex
+  const rawXp = (user as any).xp || 0;
+  const xpToNextLevel = 100; // Every 100 XP grants 1 Level
+  const currentXp = rawXp % xpToNextLevel;
   const progress = (currentXp / xpToNextLevel) * 100;
 
   return (

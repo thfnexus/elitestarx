@@ -256,9 +256,13 @@ router.patch("/admin/deposits/:id/approve", async (req, res): Promise<void> => {
   if (action === "approve") {
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, deposit.userId));
     if (user) {
+      const newXp = (user.xp || 0) + 50;
+      const newLevel = Math.floor(newXp / 100);
+
       await db.update(usersTable).set({
-        // No balance increase. Instead, we activate the plan.
-        hasActivePlan: true
+        hasActivePlan: true,
+        xp: newXp,
+        level: newLevel,
       }).where(eq(usersTable.id, deposit.userId));
 
       await db.update(transactionsTable).set({ 
@@ -270,11 +274,16 @@ router.patch("/admin/deposits/:id/approve", async (req, res): Promise<void> => {
       if (user.uplinerId) {
         const [upliner] = await db.select().from(usersTable).where(eq(usersTable.id, user.uplinerId));
         if (upliner) {
+          const uplinerNewXp = (upliner.xp || 0) + 20;
+          const uplinerNewLevel = Math.floor(uplinerNewXp / 100);
+
           await db.update(usersTable)
             .set({
               referralCount: upliner.referralCount + 1,
               // +4 PKR per new joining (activation)
               dynamicAdRatePkr: upliner.dynamicAdRatePkr + 4,
+              xp: uplinerNewXp,
+              level: uplinerNewLevel,
             })
             .where(eq(usersTable.id, user.uplinerId));
 

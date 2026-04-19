@@ -133,10 +133,16 @@ router.post("/ads/watch", async (req, res): Promise<void> => {
   });
 
   const newBalance = Number(user.balance) + reward;
+  const newXp = (user.xp || 0) + 5;
+  const newLevel = Math.floor(newXp / 100);
+  
   await db.update(usersTable).set({
     balance: String(newBalance),
     totalEarnings: String(Number(user.totalEarnings) + reward),
+    xp: newXp,
+    level: newLevel,
   }).where(eq(usersTable.id, user.id));
+
 
   await db.insert(transactionsTable).values({
     userId: user.id,
