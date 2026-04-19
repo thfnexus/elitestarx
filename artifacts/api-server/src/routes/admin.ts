@@ -1,3 +1,4 @@
+import { Router, type IRouter } from "express";
 import { db, usersTable, depositsTable, withdrawalsTable, transactionsTable, globalPoolTable, settingsTable, referralsTable, weeklyPayoutsTable, adWatchesTable, rewardsTable, joiningBonusesTable } from "@workspace/db";
 import { eq, desc, gte, and, or } from "drizzle-orm";
 import { hashPassword, generateReferralCode, generateToken, getAuthUser } from "../lib/auth";
@@ -137,6 +138,8 @@ router.patch("/admin/users/:id/balance", async (req, res): Promise<void> => {
 
 router.patch("/admin/users/:id/role", async (req, res): Promise<void> => {
   if (!(await requireAdmin(req, res))) return;
+
+  console.log(`[ADMIN] Role update triggered for user ID: ${req.params.id}`);
 
   const raw = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const id = parseInt(raw, 10);
