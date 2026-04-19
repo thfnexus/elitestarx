@@ -1,15 +1,13 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "dist/index.mjs",
-      "use": "@vercel/node"
+  "functions": {
+    "api/index.mjs": {
+      "runtime": "nodejs20.x"
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "dist/index.mjs"
+      "destination": "/api/index.mjs"
     }
   ]
 }
