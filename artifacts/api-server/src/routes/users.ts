@@ -113,14 +113,7 @@ router.get("/users/dashboard", async (req, res): Promise<void> => {
     createdAt: t.createdAt.toISOString(),
   }));
 
-  const [pool] = await db.select().from(globalPoolTable);
-  // Only count elite members for global pool share
-  const totalPoolMembers = await db.select().from(usersTable).where(eq(usersTable.hasActivePlan, true));
-  
-  // If the user isn't an elite member, they don't get a share slice.
-  const yourShare = (user.hasActivePlan && pool && totalPoolMembers.length > 0) 
-    ? Number(pool.balance) / totalPoolMembers.length 
-    : 0;
+  const yourShare = 0; // Removed per user request
 
   const existingRewards = await db.select().from(rewardsTable).where(eq(rewardsTable.userId, user.id));
   const claimedMilestones = new Set(existingRewards.map(r => r.milestoneReferrals));

@@ -220,7 +220,7 @@ export default function Profile() {
                   <div>
                     <h3 className="text-lg font-black text-green-700 dark:text-green-400">Elite Account Verified</h3>
                     <p className="text-sm text-green-700/80 dark:text-green-400/70 mt-1 font-medium leading-relaxed">
-                      You are a premium member of Elite StarX. All earning tiers, global pool shares, and referral rewards are fully active for your account.
+                      You are a premium member of Elite StarX. All earning tiers and referral rewards are fully active for your account.
                     </p>
                   </div>
                 </div>
@@ -232,7 +232,7 @@ export default function Profile() {
                   <div>
                     <h3 className="text-lg font-black text-amber-700 dark:text-amber-400">Standard Account (Restricted)</h3>
                     <p className="text-sm text-amber-700/80 dark:text-amber-400/70 mt-1 font-medium leading-relaxed">
-                      Your premium features are currently locked. Upgrade to the Elite Plan to unlock full potential and start earning global pool rewards.
+                      Your premium features are currently locked. Upgrade to the Elite Plan to unlock full potential and start building your team.
                     </p>
                   </div>
                 </div>

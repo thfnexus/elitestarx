@@ -8,7 +8,7 @@ import referralsRouter from "./referrals";
 import depositsRouter from "./deposits";
 import withdrawalsRouter from "./withdrawals";
 import rewardsRouter from "./rewards";
-import globalPoolRouter from "./globalPool";
+
 import adminRouter from "./admin";
 import plansRouter from "./plans";
 
@@ -23,7 +23,7 @@ router.use(referralsRouter);
 router.use(depositsRouter);
 router.use(withdrawalsRouter);
 router.use(rewardsRouter);
-router.use(globalPoolRouter);
+
 router.use(adminRouter);
 router.use(plansRouter);
 

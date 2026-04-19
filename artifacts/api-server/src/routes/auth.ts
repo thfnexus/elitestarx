@@ -53,19 +53,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
   // Upliner processing removed from registration. 
   // Referral counts and commissions will now be handled upon account activation (deposit approval).
   
-  const [pool] = await db.select().from(globalPoolTable);
-  if (pool) {
-    await db.update(globalPoolTable).set({
-      balance: String(Number(pool.balance) + 0.18),
-      totalContributed: String(Number(pool.totalContributed) + 0.18),
-    }).where(eq(globalPoolTable.id, pool.id));
-  } else {
-    await db.insert(globalPoolTable).values({
-      balance: "0.18",
-      totalContributed: "0.18",
-    });
-  }
-
+  // Global pool completely removed per user request
   const token = generateToken(user.id);
 
   const [uplinerUser] = uplinerId

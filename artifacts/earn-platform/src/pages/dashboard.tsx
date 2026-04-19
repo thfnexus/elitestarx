@@ -285,23 +285,13 @@ export default function Dashboard() {
                 </div>
               </div>
               
-              <div className="flex items-center justify-between border-b border-border pb-4">
+              <div className="flex items-center justify-between pb-4">
                 <div>
                   <p className="text-sm font-black text-muted-foreground uppercase tracking-wider text-[10px]">Referral Earnings</p>
                   <p className="text-2xl font-black text-foreground">${stats.todayReferralEarnings.toFixed(2)}</p>
                 </div>
                 <div className="h-12 w-12 bg-indigo-500/10 text-indigo-500 rounded-full flex items-center justify-center border border-indigo-500/20">
                   <Users className="h-6 w-6" />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-black text-muted-foreground uppercase tracking-wider text-[10px]">Global Pool Share</p>
-                  <p className="text-2xl font-black text-foreground">${stats.globalPoolShare.toFixed(2)}</p>
-                </div>
-                <div className="h-12 w-12 bg-amber-500/10 text-amber-500 rounded-full flex items-center justify-center border border-amber-500/20">
-                  <TrendingUp className="h-6 w-6" />
                 </div>
               </div>
             </div>
