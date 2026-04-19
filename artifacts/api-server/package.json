@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx ./src/index.ts",
-    "build": "node -e \"const fs=require('fs'); if(!fs.existsSync('public')) fs.mkdirSync('public'); fs.writeFileSync('public/index.html', 'ok')\"",
+    "build": "node ./prep-vercel.js",
     "start": "node --enable-source-maps ./dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
