@@ -179,8 +179,23 @@ router.get("/users/dashboard", async (req, res): Promise<void> => {
     nextRewardMilestone: nextRewardMilestone
       ? { referrals: nextRewardMilestone.referrals, amount: nextRewardMilestone.amount, claimed: false }
       : null,
-    recentTransactions,
   });
+});
+
+router.patch("/users/profile", async (req, res): Promise<void> => {
+  const user = await getAuthUser(req as any);
+  if (!user) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
+  const { profileImage } = req.body;
+
+  await db.update(usersTable)
+    .set({ profileImage })
+    .where(eq(usersTable.id, user.id));
+
+  res.json({ success: true, message: "Profile updated successfully" });
 });
 
 export default router;

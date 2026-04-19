@@ -17,6 +17,7 @@ export const usersTable = pgTable("users", {
   isBlocked: boolean("is_blocked").notNull().default(false),
   hasActivePlan: boolean("has_active_plan").notNull().default(false),
   whatsappNumber: text("whatsapp_number"),
+  profileImage: text("profile_image"),
   globalPoolEligible: boolean("global_pool_eligible").notNull().default(true),
   dynamicAdRatePkr: integer("dynamic_ad_rate_pkr").notNull().default(5),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

@@ -80,9 +80,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <Link href="/profile">
               <div 
-                className="h-10 w-10 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center font-bold text-base cursor-pointer shadow-md hover:ring-2 hover:ring-amber-400/50 transition-all border-2 border-white/20"
+                className="h-10 w-10 rounded-full bg-amber-500 text-slate-900 flex items-center justify-center font-bold text-base cursor-pointer shadow-md hover:ring-2 hover:ring-amber-400/50 transition-all border-2 border-white/20 overflow-hidden"
               >
-                {user.username.charAt(0).toUpperCase()}
+                {(user as any).profileImage ? (
+                  <img src={(user as any).profileImage} alt={user.username} className="h-full w-full object-cover" />
+                ) : (
+                  user.username.charAt(0).toUpperCase()
+                )}
               </div>
             </Link>
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
