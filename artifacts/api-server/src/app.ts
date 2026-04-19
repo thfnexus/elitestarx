@@ -89,6 +89,7 @@ app.use("/api", (req: Request, res: Response, next: NextFunction) => {
 });
 
 // ─── Health Check (no rate limit, used by hosting platforms) ─────────────────
+app.get("/", (_req, res) => res.json({ message: "EliteStarX API Server is running", status: "ok" }));
 app.get("/health", (_req, res) => res.json({ status: "ok", ts: Date.now() }));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
