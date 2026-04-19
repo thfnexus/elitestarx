@@ -10,7 +10,7 @@ export const transactionsTable = pgTable("transactions", {
   }).notNull(),
   amount: numeric("amount", { precision: 12, scale: 4 }).notNull(),
   description: text("description").notNull(),
-  status: text("status", { enum: ["pending", "completed", "failed"] }).notNull().default("completed"),
+  status: text("status", { enum: ["pending", "completed", "failed", "approved", "rejected"] }).notNull().default("completed"),
   referenceId: integer("reference_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

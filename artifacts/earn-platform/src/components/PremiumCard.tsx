@@ -1,9 +1,9 @@
-import { User } from "@workspace/db/schema";
+import { User } from "@workspace/api-client-react";
 import { Hexagon, Sparkles } from "lucide-react";
 import { Progress } from "./ui/progress";
 
 interface PremiumCardProps {
-  user: User;
+  user: any;
   onAvatarClick?: () => void;
 }
 

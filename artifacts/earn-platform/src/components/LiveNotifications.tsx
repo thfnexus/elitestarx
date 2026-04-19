@@ -5,12 +5,12 @@ import { BadgeDollarSign } from "lucide-react";
 
 export default function LiveNotifications() {
   const { data: withdrawals } = useGetLiveWithdrawals({
-    query: { 
-      refetchInterval: 15000, // Poll every 15 seconds
-      staleTime: 10000 
-    }
+    query: {
+      refetchInterval: 15000,
+      staleTime: 10000,
+    } as any
   });
-  
+
   // Track IDs of notifications already shown to avoid duplicates
   const shownIds = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
@@ -20,24 +20,29 @@ export default function LiveNotifications() {
 
     // On first load, just populate the seen IDs so we don't spam old notifications
     if (isFirstLoad.current) {
-      withdrawals.forEach(w => shownIds.current.add(w.id));
+      withdrawals.forEach(w => shownIds.current.add(String(w.id)));
       isFirstLoad.current = false;
       return;
     }
 
     // Check for new withdrawals
     withdrawals.forEach((w) => {
-      if (!shownIds.current.has(w.id)) {
-        shownIds.current.add(w.id);
-        
+      const wId = String(w.id);
+      if (!shownIds.current.has(wId)) {
+        shownIds.current.add(wId);
+
         // Mask username: Ali***
-        const maskedName = w.username.length > 3 
-          ? w.username.slice(0, 3) + "***" 
-          : w.username + "***";
+        const name = String(w.username ?? "");
+        const maskedName = name.length > 3
+          ? name.slice(0, 3) + "***"
+          : name + "***";
+
+        const amount = Number(w.amount ?? 0);
+        const method = String(w.method ?? "").replace('_', ' ');
 
         // Trigger toast
         toast.success(`Withdrawal Success!`, {
-          description: `${maskedName} just withdrew $${w.amount.toFixed(2)} via ${w.method.replace('_', ' ')}`,
+          description: `${maskedName} just withdrew $${amount.toFixed(2)} via ${method}`,
           icon: <BadgeDollarSign className="h-5 w-5 text-green-500" />,
           duration: 5000,
         });
@@ -45,5 +50,5 @@ export default function LiveNotifications() {
     });
   }, [withdrawals]);
 
-  return null; // This component handles side effects only
+  return null;
 }
