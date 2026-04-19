@@ -145,7 +145,7 @@ function UsersTab() {
 
   const roleMutation = useMutation({
     mutationFn: async ({ id, isAdmin }: { id: number, isAdmin: boolean }) => {
-      const resp = await customFetch(`/admin/users/${id}/role`, {
+      const resp = await customFetch(`/api/admin/users/${id}/role`, {
         method: "PATCH",
         body: JSON.stringify({ isAdmin })
       });
@@ -160,7 +160,7 @@ function UsersTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const resp = await customFetch(`/admin/users/${id}`, {
+      const resp = await customFetch(`/api/admin/users/${id}`, {
         method: "DELETE"
       });
       if (!resp.ok) {
@@ -570,7 +570,7 @@ function WeeklyPerformanceTab() {
   const { data: payouts, isLoading } = useQuery<WeeklyPayout[]>({
     queryKey: ["/admin/weekly-payouts"],
     queryFn: async () => {
-      const resp = await customFetch("/admin/weekly-payouts");
+      const resp = await customFetch("/api/admin/weekly-payouts");
       return resp.json();
     }
   });
