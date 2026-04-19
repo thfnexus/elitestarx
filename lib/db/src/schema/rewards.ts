@@ -1,4 +1,4 @@
-import { pgTable, serial, timestamp, integer, numeric, boolean } from "drizzle-orm/pg-core";
+import { pgTable, serial, timestamp, integer, numeric, boolean, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -10,7 +10,9 @@ export const rewardsTable = pgTable("rewards", {
   claimed: boolean("claimed").notNull().default(false),
   claimedAt: timestamp("claimed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => ({
+  userMilestoneIdx: index("user_milestone_idx").on(table.userId, table.milestoneReferrals),
+}));
 
 export const insertRewardSchema = createInsertSchema(rewardsTable).omit({ id: true, createdAt: true });
 export type InsertReward = z.infer<typeof insertRewardSchema>;

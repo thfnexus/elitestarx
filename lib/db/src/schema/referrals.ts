@@ -1,4 +1,4 @@
-import { pgTable, serial, timestamp, integer, numeric } from "drizzle-orm/pg-core";
+import { pgTable, serial, timestamp, integer, numeric, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -9,7 +9,10 @@ export const referralsTable = pgTable("referrals", {
   level: integer("level").notNull(),
   commission: numeric("commission", { precision: 12, scale: 4 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (table) => ({
+  referrerIdx: index("referrer_idx").on(table.referrerId),
+  referredIdx: index("referred_idx").on(table.referredId),
+}));
 
 export const insertReferralSchema = createInsertSchema(referralsTable).omit({ id: true, createdAt: true });
 export type InsertReferral = z.infer<typeof insertReferralSchema>;

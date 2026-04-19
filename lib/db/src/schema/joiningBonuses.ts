@@ -1,4 +1,4 @@
-import { pgTable, serial, timestamp, integer, numeric, text } from "drizzle-orm/pg-core";
+import { pgTable, serial, timestamp, integer, numeric, text, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -13,7 +13,9 @@ export const joiningBonusesTable = pgTable("joining_bonuses", {
   milestone6Paid: integer("milestone6_paid").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
+}, (table) => ({
+  userDateIdx: index("user_bonus_date_idx").on(table.userId, table.bonusDate),
+}));
 
 export const insertJoiningBonusSchema = createInsertSchema(joiningBonusesTable).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertJoiningBonus = z.infer<typeof insertJoiningBonusSchema>;
