@@ -1,7 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
-import pinoHttp from "pino-http";
-import rateLimit from "express-rate-limit";
+import { pinoHttp } from "pino-http";
+import { rateLimit } from "express-rate-limit";
 import compression from "compression";
 import router from "./routes";
 import { logger } from "./lib/logger";
@@ -12,17 +12,17 @@ const app: Express = express();
 app.set("trust proxy", 1);
 
 // ─── Compression (gzip all responses — reduces bandwidth by ~60-70%) ─────────
-app.use(compression() as any);
+app.use(compression());
 
 // ─── Request Logging ──────────────────────────────────────────────────────────
 app.use(
   pinoHttp({
     logger,
     serializers: {
-      req(req) {
+      req(req: any) {
         return { id: req.id, method: req.method, url: req.url?.split("?")[0] };
       },
-      res(res) {
+      res(res: any) {
         return { statusCode: res.statusCode };
       },
     },
