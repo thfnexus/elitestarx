@@ -1,7 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import cors from "cors";
-import { pinoHttp } from "pino-http";
-import { rateLimit } from "express-rate-limit";
+import pinoHttp from "pino-http";
+import rateLimit from "express-rate-limit";
 import compression from "compression";
 import router from "./routes";
 import { logger } from "./lib/logger";
