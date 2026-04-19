@@ -145,34 +145,32 @@ function UsersTab() {
 
   const roleMutation = useMutation({
     mutationFn: async ({ id, isAdmin }: { id: number, isAdmin: boolean }) => {
-      const resp = await customFetch(`/api/admin/users/${id}/role`, {
+      return await customFetch(`/api/admin/users/${id}/role`, {
         method: "PATCH",
         body: JSON.stringify({ isAdmin })
       });
-      if (!resp.ok) throw new Error("Failed to update role");
-      return resp.json();
     },
     onSuccess: () => {
       toast({ title: "User role updated successfully" });
       queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
+      setRoleDialogOpen(false);
+    },
+    onError: (err: any) => {
+      toast({ variant: "destructive", title: "Role update failed", description: err.message });
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const resp = await customFetch(`/api/admin/users/${id}`, {
+      return await customFetch(`/api/admin/users/${id}`, {
         method: "DELETE"
       });
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error || "Failed to delete user");
-      }
-      return resp.json();
     },
     onSuccess: () => {
       toast({ title: "User deleted permanently" });
       queryClient.invalidateQueries({ queryKey: getAdminGetUsersQueryKey() });
       queryClient.invalidateQueries({ queryKey: getAdminGetAnalyticsQueryKey() });
+      setDeleteDialogOpen(false);
     },
     onError: (err: any) => {
       toast({ variant: "destructive", title: "Deletion failed", description: err.message });
@@ -181,6 +179,9 @@ function UsersTab() {
 
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustReason, setAdjustReason] = useState("");
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [activeUserId, setActiveUserId] = useState<number | null>(null);
 
   if (isLoading) return <div className="p-8 text-center">Loading users...</div>;
 
@@ -253,7 +254,7 @@ function UsersTab() {
                       {u.isBlocked ? "Unblock" : <Ban className="w-4 h-4" />}
                     </Button>
 
-                    <Dialog>
+                    <Dialog open={roleDialogOpen && activeUserId === u.id} onOpenChange={(open) => { setRoleDialogOpen(open); if(open) setActiveUserId(u.id); }}>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
@@ -282,14 +283,18 @@ function UsersTab() {
                           )}
                         </div>
                         <DialogFooter>
-                          <Button variant={u.isAdmin ? "destructive" : "default"} onClick={() => roleMutation.mutate({ id: u.id, isAdmin: !u.isAdmin })}>
-                            Confirm Changes
+                          <Button 
+                            variant={u.isAdmin ? "destructive" : "default"} 
+                            onClick={() => roleMutation.mutate({ id: u.id, isAdmin: !u.isAdmin })}
+                            disabled={roleMutation.isPending}
+                          >
+                            {roleMutation.isPending ? "Updating..." : "Confirm Changes"}
                           </Button>
                         </DialogFooter>
                       </DialogContent>
                     </Dialog>
 
-                    <Dialog>
+                    <Dialog open={deleteDialogOpen && activeUserId === u.id} onOpenChange={(open) => { setDeleteDialogOpen(open); if(open) setActiveUserId(u.id); }}>
                       <DialogTrigger asChild>
                         <Button 
                           variant="ghost" 
@@ -570,8 +575,7 @@ function WeeklyPerformanceTab() {
   const { data: payouts, isLoading } = useQuery<WeeklyPayout[]>({
     queryKey: ["/admin/weekly-payouts"],
     queryFn: async () => {
-      const resp = await customFetch("/api/admin/weekly-payouts");
-      return resp.json();
+      return await customFetch("/api/admin/weekly-payouts");
     }
   });
 
