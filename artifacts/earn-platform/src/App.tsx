@@ -11,7 +11,6 @@ import LiveNotifications from "@/components/LiveNotifications";
 import { ThemeProvider } from "@/components/theme-provider";
 
 // Pages
-import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Dashboard from "@/pages/dashboard";
@@ -32,7 +31,7 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       
