@@ -22,7 +22,8 @@
     "target": "es2022",
     "types": ["node"]
   },
-  "include": ["src", "api"],
+  "include": ["src"],
+  "exclude": ["node_modules", "api"],
   "references": [
     {
       "path": "../../lib/db"
