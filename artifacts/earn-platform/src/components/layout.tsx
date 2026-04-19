@@ -24,6 +24,7 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useTheme } from "./theme-provider";
+import { PremiumCard } from "./PremiumCard";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -132,6 +133,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-[calc(100vh-80px)]">
+        {/* Top Premium Card Header (Only on Dashboard and Profile) */}
+        {(location === "/dashboard" || location === "/profile") && (
+          <div className="max-w-5xl mx-auto w-full pt-6 px-4 md:px-0">
+            <Link href="/profile">
+              <div className="cursor-pointer transition-transform active:scale-[0.98]">
+                <PremiumCard user={user as any} />
+              </div>
+            </Link>
+          </div>
+        )}
+
         <div className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto">
           {location !== "/dashboard" && (
             <div className="max-w-5xl mx-auto mb-6">
