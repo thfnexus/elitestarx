@@ -97,6 +97,49 @@ export default function Profile() {
       <div className="grid gap-8 md:grid-cols-3">
         {/* Profile Details Sidebar */}
         <div className="space-y-6">
+          <Card className="shadow-lg border-border bg-card/50 backdrop-blur-sm overflow-hidden">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <User className="h-4 w-4" /> Account Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-6 pb-6 pt-2 space-y-6">
+              <div className="grid gap-6">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Username</p>
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary/60" />
+                    <p className="font-bold text-slate-700 dark:text-slate-300">{user.username}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Email Address</p>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-amber-500/60" />
+                    <p className="font-bold text-slate-700 dark:text-slate-300 break-all">{user.email}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">WhatsApp Link</p>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-green-500/60" />
+                    <p className="font-bold text-slate-700 dark:text-slate-300">{user.whatsappNumber || "Not registered"}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Member Since</p>
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-blue-500/60" />
+                    <p className="font-bold text-slate-700 dark:text-slate-300">
+                      {format(new Date(user.createdAt), "MMMM dd, yyyy")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           {/* Upload Tips Section */}
