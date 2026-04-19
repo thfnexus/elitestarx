@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx ./src/index.ts",
-    "build": "mkdir -p dist && echo 'ready' > dist/index.html",
+    "build": "mkdir -p public && echo 'ready' > public/index.html",
+    "postinstall": "mkdir -p public && echo 'ready' > public/index.html",
     "start": "node --enable-source-maps ./dist/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
